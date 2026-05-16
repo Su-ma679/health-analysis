@@ -1,0 +1,669 @@
+{% extends "base.html" %}
+{% block title %}HealthScope — Health Questionnaire{% endblock %}
+
+{% block extra_css %}
+<style>
+    .q-hero {
+        background: linear-gradient(135deg, rgba(108,99,255,.3), rgba(248,87,166,.2));
+        border-bottom: 1px solid rgba(255,255,255,.1);
+        padding: 50px 0 30px;
+        text-align: center;
+    }
+    .q-hero h1 {
+        font-family: 'Nunito', sans-serif;
+        font-weight: 900; font-size: 2.4rem; margin-bottom: 10px;
+    }
+    .q-hero p { color: rgba(255,255,255,.7); font-size: 1rem; }
+
+    /* Progress Bar */
+    .progress-wrap {
+        position: sticky; top: 0; z-index: 100;
+        background: rgba(26,26,46,.95);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255,255,255,.1);
+        padding: 14px 0;
+    }
+    .progress { height: 10px; background: rgba(255,255,255,.1); border-radius: 50px; }
+    .progress-bar {
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        border-radius: 50px;
+        transition: width .4s ease;
+    }
+    .progress-label {
+        color: rgba(255,255,255,.7); font-size: .85rem;
+        text-align: right; margin-top: 6px;
+    }
+
+    /* Section Cards */
+    .section-card {
+        background: rgba(255,255,255,.06);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 24px;
+        padding: 36px;
+        margin-bottom: 30px;
+        display: none;
+    }
+    .section-card.active { display: block; animation: fadeInUp .5s ease; }
+
+    .section-header {
+        display: flex; align-items: center; gap: 14px;
+        margin-bottom: 28px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+    .section-icon {
+        width: 56px; height: 56px; border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.8rem; flex-shrink: 0;
+    }
+    .icon-purple { background: linear-gradient(135deg,#6c63ff,#a29bfe); }
+    .icon-green  { background: linear-gradient(135deg,#43e97b,#38f9d7); }
+    .icon-orange { background: linear-gradient(135deg,#fa8231,#f9ca24); }
+    .icon-pink   { background: linear-gradient(135deg,#f857a6,#ff5858); }
+    .icon-blue   { background: linear-gradient(135deg,#00c6fb,#005bea); }
+    .icon-teal   { background: linear-gradient(135deg,#11998e,#38ef7d); }
+
+    .section-header h3 {
+        font-family: 'Nunito', sans-serif;
+        font-weight: 800; font-size: 1.4rem; margin: 0;
+    }
+    .section-header span { color: rgba(255,255,255,.6); font-size: .9rem; }
+
+    /* Form Controls */
+    .q-label {
+        font-weight: 600; font-size: .95rem;
+        margin-bottom: 10px; display: block;
+        color: rgba(255,255,255,.9);
+    }
+    .q-number { color: var(--primary); font-weight: 800; margin-right: 6px; }
+
+    .form-control, .form-select {
+        background: rgba(255,255,255,.08) !important;
+        border: 1px solid rgba(255,255,255,.2) !important;
+        color: #fff !important;
+        border-radius: 12px !important;
+        padding: 12px 16px !important;
+        font-size: .95rem !important;
+        transition: border-color .2s, box-shadow .2s;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 3px rgba(108,99,255,.25) !important;
+        background: rgba(255,255,255,.12) !important;
+        outline: none !important;
+    }
+    .form-select option { background: #1a1a2e; color: #fff; }
+
+    /* Slider */
+    .slider-wrap { position: relative; padding-bottom: 8px; }
+    .form-range {
+        width: 100%; accent-color: var(--primary);
+        height: 6px; cursor: pointer;
+    }
+    .slider-labels {
+        display: flex; justify-content: space-between;
+        font-size: .78rem; color: rgba(255,255,255,.5);
+        margin-top: 4px;
+    }
+    .slider-value {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: #fff; font-weight: 700;
+        border-radius: 20px; padding: 2px 14px;
+        font-size: .85rem; margin-left: 10px;
+    }
+
+    /* Multi-select checkboxes */
+    .check-group { display: flex; flex-wrap: wrap; gap: 10px; }
+    .check-item input[type="checkbox"] { display: none; }
+    .check-item label {
+        background: rgba(255,255,255,.08);
+        border: 1px solid rgba(255,255,255,.2);
+        border-radius: 50px; padding: 8px 18px;
+        cursor: pointer; font-size: .88rem;
+        transition: all .2s; user-select: none;
+    }
+    .check-item input:checked + label {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border-color: transparent; font-weight: 600;
+    }
+
+    /* BMI display */
+    .bmi-display {
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.15);
+        border-radius: 14px; padding: 16px 20px;
+        margin-top: 12px; display: none;
+    }
+    .bmi-value {
+        font-family: 'Nunito', sans-serif;
+        font-weight: 900; font-size: 2rem;
+    }
+    .bmi-label { font-size: .9rem; margin-left: 10px; font-weight: 600; }
+
+    /* Navigation Buttons */
+    .nav-buttons {
+        display: flex; justify-content: space-between;
+        align-items: center; margin-top: 36px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(255,255,255,.1);
+    }
+    .btn-next {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border: none; color: #fff; font-weight: 700;
+        border-radius: 50px; padding: 12px 36px;
+        font-size: 1rem; cursor: pointer;
+        transition: transform .2s, box-shadow .2s;
+    }
+    .btn-next:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(108,99,255,.4);
+    }
+    .btn-prev {
+        background: rgba(255,255,255,.1);
+        border: 1px solid rgba(255,255,255,.2);
+        color: #fff; font-weight: 600;
+        border-radius: 50px; padding: 12px 30px;
+        cursor: pointer; transition: background .2s;
+    }
+    .btn-prev:hover { background: rgba(255,255,255,.18); }
+    .btn-submit {
+        background: linear-gradient(135deg, #43e97b, #38f9d7);
+        border: none; color: #1a1a2e; font-weight: 800;
+        border-radius: 50px; padding: 14px 42px;
+        font-size: 1.05rem; cursor: pointer;
+        transition: transform .2s, box-shadow .2s;
+    }
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(67,233,123,.4);
+    }
+
+    /* Step indicators */
+    .step-dots {
+        display: flex; gap: 8px; align-items: center;
+    }
+    .dot {
+        width: 10px; height: 10px; border-radius: 50%;
+        background: rgba(255,255,255,.2);
+        transition: all .3s;
+    }
+    .dot.active {
+        background: var(--primary);
+        width: 24px; border-radius: 5px;
+    }
+    .dot.done { background: var(--accent1); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="q-hero">
+    <h1>🏥 Health Questionnaire</h1>
+    <p>Complete all sections to get your personalised health dashboard</p>
+</div>
+
+<!-- Progress Bar -->
+<div class="progress-wrap">
+    <div class="container">
+        <div class="progress">
+            <div class="progress-bar" id="progressBar" style="width:16.6%"></div>
+        </div>
+        <div class="progress-label">
+            Section <span id="currentStep">1</span> of 6
+        </div>
+    </div>
+</div>
+
+<!-- Form -->
+<div class="container py-5">
+<form method="POST" action="/questionnaire" id="healthForm">
+
+    <!-- ═══ SECTION 0 — Basic Info ═══ -->
+    <div class="section-card active" id="section-0">
+        <div class="section-header">
+            <div class="section-icon icon-purple">👤</div>
+            <div>
+                <h3>Basic Information</h3>
+                <span>Tell us a little about yourself</span>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+    <label class="q-label"><span class="q-number">Q1.</span> What is your full name?</label>
+    <input type="text" name="name" class="form-control" placeholder="Enter your name" required>
+</div>
+<div class="col-md-6">
+    <label class="q-label"><span class="q-number">Q2.</span> How old are you?</label>
+    <input type="number" name="age" class="form-control" placeholder="Enter your age" min="1" max="120" required>
+</div>
+<div class="col-md-6">
+    <label class="q-label"><span class="q-number">Q3.</span> What is your gender?</label>
+    <select name="gender" class="form-select" required>
+        <option value="" disabled selected>Select gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+        <option value="Prefer not to say">Prefer not to say</option>
+    </select>
+</div>
+<div class="col-md-3">
+    <label class="q-label"><span class="q-number">Q4a.</span> Weight (kg)</label>
+    <input type="number" name="weight" id="weight" class="form-control" placeholder="e.g. 65" min="1" max="300" step="0.1" required>
+</div>
+<div class="col-md-3">
+    <label class="q-label"><span class="q-number">Q4b.</span> Height (cm)</label>
+    <input type="number" name="height" id="height" class="form-control" placeholder="e.g. 170" min="50" max="250" required>
+</div>
+            <!-- BMI Display -->
+            <div class="col-12">
+                <div class="bmi-display" id="bmiDisplay">
+                    <span style="color:rgba(255,255,255,.6); font-size:.9rem;">Your BMI:</span>
+                    <span class="bmi-value" id="bmiValue">--</span>
+                    <span class="bmi-label" id="bmiLabel"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <div class="step-dots">
+                <div class="dot active" id="dot-0"></div>
+                <div class="dot" id="dot-1"></div>
+                <div class="dot" id="dot-2"></div>
+                <div class="dot" id="dot-3"></div>
+                <div class="dot" id="dot-4"></div>
+                <div class="dot" id="dot-5"></div>
+            </div>
+            <button type="button" class="btn-next" onclick="nextSection(0)">Next <i class="bi bi-arrow-right ms-1"></i></button>
+        </div>
+    </div>
+
+    <!-- ═══ SECTION 1 — Sleep ═══ -->
+    <div class="section-card" id="section-1">
+        <div class="section-header">
+            <div class="section-icon icon-green">😴</div>
+            <div>
+                <h3>Sleep & Rest</h3>
+                <span>Questions 5 – 7</span>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-12">
+                <label class="q-label">
+                    <span class="q-number">Q5.</span> How many hours do you sleep per night on average?
+                    <span class="slider-value" id="sleepVal">7</span>
+                </label>
+                <div class="slider-wrap">
+                    <input type="range" name="sleep_hours" id="sleepSlider" class="form-range"
+                           min="1" max="12" step="0.5" value="7"
+                           oninput="document.getElementById('sleepVal').textContent=this.value">
+                    <div class="slider-labels"><span>1 hr</span><span>6 hrs</span><span>12 hrs</span></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="q-label"><span class="q-number">Q6.</span> How often do you feel rested after waking up?</label>
+                <select name="sleep_rested" class="form-select" required>
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="Never">Never</option>
+                    <option value="Rarely">Rarely</option>
+                    <option value="Sometimes">Sometimes</option>
+                    <option value="Usually">Usually</option>
+                    <option value="Always">Always</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="q-label"><span class="q-number">Q7.</span> Do you have trouble falling or staying asleep?</label>
+                <select name="sleep_trouble" class="form-select" required>
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="Always">Always</option>
+                    <option value="Often">Often</option>
+                    <option value="Sometimes">Sometimes</option>
+                    <option value="Rarely">Rarely</option>
+                    <option value="Never">Never</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button type="button" class="btn-prev" onclick="prevSection(1)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+            <div class="step-dots">
+                <div class="dot done"></div>
+                <div class="dot active"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+            <button type="button" class="btn-next" onclick="nextSection(1)">Next <i class="bi bi-arrow-right ms-1"></i></button>
+        </div>
+    </div>
+
+    <!-- ═══ SECTION 2 — Physical Activity ═══ -->
+    <div class="section-card" id="section-2">
+        <div class="section-header">
+            <div class="section-icon icon-orange">🏃</div>
+            <div>
+                <h3>Physical Activity</h3>
+                <span>Questions 8 – 10</span>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-12">
+                <label class="q-label">
+                    <span class="q-number">Q8.</span> How many days per week do you exercise?
+                    <span class="slider-value" id="exerciseVal">3</span> days
+                </label>
+                <div class="slider-wrap">
+                    <input type="range" name="exercise_days" id="exerciseSlider" class="form-range"
+                           min="0" max="7" step="1" value="3"
+                           oninput="document.getElementById('exerciseVal').textContent=this.value">
+                    <div class="slider-labels"><span>0 days</span><span>3-4 days</span><span>7 days</span></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="q-label"><span class="q-number">Q9.</span> How long is each exercise session?</label>
+                <select name="exercise_duration" class="form-select" required>
+                    <option value="" disabled selected>Select duration</option>
+                    <option value="less_15">Less than 15 minutes</option>
+                    <option value="15_30">15 – 30 minutes</option>
+                    <option value="30_60">30 – 60 minutes</option>
+                    <option value="more_60">More than 60 minutes</option>
+                    <option value="none">I don't exercise</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="q-label"><span class="q-number">Q10.</span> What type of activity do you do? (Pick all that apply)</label>
+                <div class="check-group">
+                    <div class="check-item"><input type="checkbox" name="exercise_type" value="Walking" id="ex1"><label for="ex1">🚶 Walking</label></div>
+                    <div class="check-item"><input type="checkbox" name="exercise_type" value="Running" id="ex2"><label for="ex2">🏃 Running</label></div>
+                    <div class="check-item"><input type="checkbox" name="exercise_type" value="Gym" id="ex3"><label for="ex3">🏋️ Gym</label></div>
+                    <div class="check-item"><input type="checkbox" name="exercise_type" value="Sports" id="ex4"><label for="ex4">⚽ Sports</label></div>
+                    <div class="check-item"><input type="checkbox" name="exercise_type" value="Yoga" id="ex5"><label for="ex5">🧘 Yoga</label></div>
+                    <div class="check-item"><input type="checkbox" name="exercise_type" value="None" id="ex6"><label for="ex6">😴 None</label></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button type="button" class="btn-prev" onclick="prevSection(2)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+            <div class="step-dots">
+                <div class="dot done"></div><div class="dot done"></div>
+                <div class="dot active"></div>
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+            <button type="button" class="btn-next" onclick="nextSection(2)">Next <i class="bi bi-arrow-right ms-1"></i></button>
+        </div>
+    </div>
+
+    <!-- ═══ SECTION 3 — Mental Health ═══ -->
+    <div class="section-card" id="section-3">
+        <div class="section-header">
+            <div class="section-icon icon-pink">🧠</div>
+            <div>
+                <h3>Mental Health & Stress</h3>
+                <span>Questions 11 – 13</span>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <label class="q-label"><span class="q-number">Q11.</span> How often do you feel stressed or anxious?</label>
+                <select name="stress_level" class="form-select" required>
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="Always">Always</option>
+                    <option value="Often">Often</option>
+                    <option value="Sometimes">Sometimes</option>
+                    <option value="Rarely">Rarely</option>
+                    <option value="Never">Never</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="q-label"><span class="q-number">Q13.</span> Do you have hobbies that help you relax?</label>
+                <select name="hobbies" class="form-select" required>
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="None">No hobbies</option>
+                    <option value="One">1 hobby</option>
+                    <option value="Multiple">2 or more hobbies</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <label class="q-label">
+                    <span class="q-number">Q12.</span> Rate your overall mood this past week
+                    <span class="slider-value" id="moodVal">6</span>/10
+                </label>
+                <div class="slider-wrap">
+                    <input type="range" name="mood_score" id="moodSlider" class="form-range"
+                           min="1" max="10" step="1" value="6"
+                           oninput="document.getElementById('moodVal').textContent=this.value">
+                    <div class="slider-labels"><span>😞 1 (Very Low)</span><span>😐 5</span><span>😄 10 (Excellent)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button type="button" class="btn-prev" onclick="prevSection(3)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+            <div class="step-dots">
+                <div class="dot done"></div><div class="dot done"></div><div class="dot done"></div>
+                <div class="dot active"></div>
+                <div class="dot"></div><div class="dot"></div>
+            </div>
+            <button type="button" class="btn-next" onclick="nextSection(3)">Next <i class="bi bi-arrow-right ms-1"></i></button>
+        </div>
+    </div>
+
+    <!-- ═══ SECTION 4 — Hydration ═══ -->
+    <div class="section-card" id="section-4">
+        <div class="section-header">
+            <div class="section-icon icon-blue">💧</div>
+            <div>
+                <h3>Hydration</h3>
+                <span>Questions 14 – 15</span>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-12">
+                <label class="q-label">
+                    <span class="q-number">Q14.</span> How many glasses of water (250ml) do you drink per day?
+                    <span class="slider-value" id="waterVal">6</span> glasses
+                </label>
+                <div class="slider-wrap">
+                    <input type="range" name="water_glasses" id="waterSlider" class="form-range"
+                           min="0" max="15" step="1" value="6"
+                           oninput="document.getElementById('waterVal').textContent=this.value">
+                    <div class="slider-labels"><span>0</span><span>8 (recommended)</span><span>15+</span></div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <label class="q-label"><span class="q-number">Q15.</span> Do you drink sugary drinks (soda, juice) more than water?</label>
+                <select name="sugary_drinks" class="form-select" required>
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="Always">Always — mostly sugary drinks</option>
+                    <option value="Often">Often</option>
+                    <option value="Sometimes">Sometimes</option>
+                    <option value="Never">Never — I prefer water</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button type="button" class="btn-prev" onclick="prevSection(4)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+            <div class="step-dots">
+                <div class="dot done"></div><div class="dot done"></div><div class="dot done"></div><div class="dot done"></div>
+                <div class="dot active"></div>
+                <div class="dot"></div>
+            </div>
+            <button type="button" class="btn-next" onclick="nextSection(4)">Next <i class="bi bi-arrow-right ms-1"></i></button>
+        </div>
+    </div>
+
+    <!-- ═══ SECTION 5 — Screen Time ═══ -->
+    <div class="section-card" id="section-5">
+        <div class="section-header">
+            <div class="section-icon icon-teal">📱</div>
+            <div>
+                <h3>Screen Time & Lifestyle</h3>
+                <span>Questions 16 – 17</span>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-12">
+                <label class="q-label">
+                    <span class="q-number">Q16.</span> Hours per day on screens (outside work/school)?
+                    <span class="slider-value" id="screenVal">3</span> hrs
+                </label>
+                <div class="slider-wrap">
+                    <input type="range" name="screen_hours" id="screenSlider" class="form-range"
+                           min="0" max="12" step="0.5" value="3"
+                           oninput="document.getElementById('screenVal').textContent=this.value">
+                    <div class="slider-labels"><span>0 hrs</span><span>4 hrs</span><span>12 hrs</span></div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <label class="q-label"><span class="q-number">Q17.</span> How are your daily meals?</label>
+                <select name="meals_per_day" class="form-select" required>
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="3_regular">3 regular meals — never skip</option>
+                    <option value="2_sometimes_skip">2 meals — sometimes skip one</option>
+                    <option value="1_often_skip">1 meal — often skip meals</option>
+                    <option value="irregular">Irregular — no fixed schedule</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button type="button" class="btn-prev" onclick="prevSection(5)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+            <div class="step-dots">
+                <div class="dot done"></div><div class="dot done"></div><div class="dot done"></div>
+                <div class="dot done"></div><div class="dot done"></div>
+                <div class="dot active"></div>
+            </div>
+            <button type="button" class="btn-submit" type="submit" onclick="submitForm()">
+                <i class="bi bi-bar-chart-fill me-2"></i>Generate My Dashboard 🚀
+            </button>
+        </div>
+    </div>
+
+</form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const totalSections = 6;
+
+    function showSection(index) {
+        document.querySelectorAll('.section-card').forEach((el, i) => {
+            el.classList.toggle('active', i === index);
+        });
+        const pct = ((index + 1) / totalSections) * 100;
+        document.getElementById('progressBar').style.width = pct + '%';
+        document.getElementById('currentStep').textContent = index + 1;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function nextSection(current) {
+    // Get all inputs in current section
+    const section = document.getElementById('section-' + current);
+    const inputs = section.querySelectorAll('input[required], select[required]');
+    let valid = true;
+
+    inputs.forEach(input => {
+        if (!input.value || input.value.trim() === '') {
+            input.style.borderColor = '#f857a6';
+            input.style.boxShadow = '0 0 0 3px rgba(248,87,166,.3)';
+            valid = false;
+        } else {
+            input.style.borderColor = '#43e97b';
+            input.style.boxShadow = '0 0 0 3px rgba(67,233,123,.2)';
+        }
+    });
+
+    if (!valid) {
+        showToast('⚠️ Please fill all required fields before continuing!');
+        return;
+    }
+
+    if (current < totalSections - 1) showSection(current + 1);
+}
+
+function submitForm() {
+    const section = document.getElementById('section-5');
+    const inputs = section.querySelectorAll('select[required]');
+    let valid = true;
+
+    inputs.forEach(input => {
+        if (!input.value || input.value.trim() === '') {
+            input.style.borderColor = '#f857a6';
+            input.style.boxShadow = '0 0 0 3px rgba(248,87,166,.3)';
+            valid = false;
+        }
+    });
+
+    if (!valid) {
+        showToast('⚠️ Please fill all fields before submitting!');
+        return;
+    }
+
+    document.getElementById('healthForm').submit();
+}
+
+function showToast(msg) {
+    // Remove existing toast
+    const old = document.getElementById('toast');
+    if (old) old.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.innerHTML = msg;
+    toast.style.cssText = `
+        position: fixed; bottom: 30px; left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #f857a6, #ff5858);
+        color: #fff; font-weight: 700;
+        padding: 14px 30px; border-radius: 50px;
+        font-size: .95rem; z-index: 9999;
+        box-shadow: 0 8px 24px rgba(248,87,166,.4);
+        animation: fadeInUp .3s ease;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+    function prevSection(current) {
+        if (current > 0) showSection(current - 1);
+    }
+
+    function submitForm() {
+        document.getElementById('healthForm').submit();
+    }
+
+    // BMI Calculator
+    function calcBMI() {
+        const w = parseFloat(document.getElementById('weight').value);
+        const h = parseFloat(document.getElementById('height').value) / 100;
+        if (w > 0 && h > 0) {
+            const bmi = (w / (h * h)).toFixed(1);
+            let label = '', color = '';
+            if      (bmi < 18.5) { label = '⚠️ Underweight'; color = '#00c6fb'; }
+            else if (bmi < 25)   { label = '✅ Normal';       color = '#43e97b'; }
+            else if (bmi < 30)   { label = '⚠️ Overweight';   color = '#fa8231'; }
+            else                 { label = '🔴 Obese';         color = '#f857a6'; }
+            document.getElementById('bmiValue').textContent = bmi;
+            document.getElementById('bmiValue').style.color = color;
+            document.getElementById('bmiLabel').textContent = label;
+            document.getElementById('bmiLabel').style.color = color;
+            document.getElementById('bmiDisplay').style.display = 'block';
+        }
+    }
+
+    document.getElementById('weight').addEventListener('input', calcBMI);
+    document.getElementById('height').addEventListener('input', calcBMI);
+</script>
+{% endblock %}

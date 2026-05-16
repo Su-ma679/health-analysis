@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+{% block title %}HealthScope — Your Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dash-hero {
+        background: linear-gradient(135deg, rgba(108,99,255,.35), rgba(248,87,166,.25));
+        border-bottom: 1px solid rgba(255,255,255,.1);
+        padding: 50px 0 40px;
+        text-align: center;
+    }
+    .dash-hero h1 {
+        font-family: 'Nunito', sans-serif;
+        font-weight: 900; font-size: 2.4rem; margin-bottom: 8px;
+    }
+    .dash-hero p { color: rgba(255,255,255,.7); font-size: 1rem; }
+
+    /* Score Cards */
+    .score-card {
+        background: rgba(255,255,255,.07);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 20px;
+        padding: 24px;
+        text-align: center;
+        height: 100%;
+        transition: transform .3s;
+    }
+    .score-card:hover { transform: translateY(-5px); }
+    .score-card .icon { font-size: 2.2rem; margin-bottom: 10px; }
+    .score-card .score-num {
+        font-family: 'Nunito', sans-serif;
+        font-weight: 900; font-size: 2.8rem; line-height: 1;
+    }
+    .score-card .section-name {
+        font-size: .85rem; color: rgba(255,255,255,.6);
+        margin-top: 4px; margin-bottom: 8px;
+    }
+    .badge-pill {
+        display: inline-block;
+        border-radius: 50px; padding: 4px 14px;
+        font-size: .78rem; font-weight: 700;
+        color: #1a1a2e;
+    }
+
+    /* Chart containers */
+    .chart-card {
+        background: rgba(255,255,255,.06);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 20px;
+        padding: 28px;
+        margin-bottom: 28px;
+    }
+    .chart-card h4 {
+        font-family: 'Nunito', sans-serif;
+        font-weight: 800; font-size: 1.2rem;
+        margin-bottom: 20px;
+    }
+
+    /* BMI Gauge */
+    .bmi-box {
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 20px; padding: 28px;
+        text-align: center; margin-bottom: 28px;
+    }
+    .bmi-big {
+        font-family: 'Nunito', sans-serif;
+        font-weight: 900; font-size: 4rem; line-height: 1;
+    }
+    .bmi-category {
+        font-size: 1.1rem; font-weight: 700; margin-top: 8px;
+    }
+    .bmi-bar-wrap {
+        background: rgba(255,255,255,.1);
+        border-radius: 50px; height: 14px;
+        margin: 16px 0 8px; position: relative; overflow: hidden;
+    }
+    .bmi-bar-fill {
+        height: 100%; border-radius: 50px;
+        background: linear-gradient(90deg,#00c6fb,#43e97b,#fa8231,#f857a6);
+        transition: width 1s ease;
+    }
+    .bmi-labels {
+        display: flex; justify-content: space-between;
+        font-size: .72rem; color: rgba(255,255,255,.5);
+    }
+
+    /* Suggestions */
+    .tip-card {
+        background: rgba(255,255,255,.06);
+        border-left: 4px solid;
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-bottom: 12px;
+        font-size: .9rem;
+        line-height: 1.6;
+    }
+
+    /* Overall score ring */
+    .overall-wrap {
+        text-align: center; padding: 20px 0;
+    }
+    .overall-score-big {
+        font-family: 'Nunito', sans-serif;
+        font-weight: 900; font-size: 5rem; line-height: 1;
+    }
+    .overall-label {
+        font-size: 1.1rem; font-weight: 700; margin-top: 6px;
+    }
+
+    .section-title-dash {
+        font-family: 'Nunito', sans-serif;
+        font-weight: 800; font-size: 1.6rem;
+        margin: 40px 0 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+
+    .retake-btn {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border: none; color: #fff; font-weight: 700;
+        border-radius: 50px; padding: 14px 40px;
+        font-size: 1rem; text-decoration: none;
+        display: inline-block; margin-top: 10px;
+        transition: transform .2s, box-shadow .2s;
+    }
+    .retake-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(108,99,255,.4);
+        color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="dash-hero">
+    <h1>📊 {{ data.name }}'s Health Dashboard</h1>
+    <p>Age: {{ data.age }} &nbsp;|&nbsp; Gender: {{ data.gender }} &nbsp;|&nbsp; Here are your personalised results!</p>
+</div>
+
+<div class="container py-5">
+
+    <!-- ═══ OVERALL SCORE ═══ -->
+    <h2 class="section-title-dash">🏆 Overall Health Score</h2>
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <div class="chart-card text-center">
+                <div class="overall-wrap">
+                    <div class="overall-score-big" style="color: {{ data.overall.badge.color }}">
+                        {{ data.overall.score }}%
+                    </div>
+                    <div class="overall-label" style="color: {{ data.overall.badge.color }}">
+                        {{ data.overall.badge.emoji }} {{ data.overall.badge.label }}
+                    </div>
+                    <p style="color:rgba(255,255,255,.6); font-size:.9rem; margin-top:12px;">
+                        Combined score across all 5 health areas
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="chart-card">
+                <h4>📈 Score Breakdown by Section</h4>
+                <div id="barChart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ SECTION SCORE CARDS ═══ -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-lg">
+            <div class="score-card">
+                <div class="icon">😴</div>
+                <div class="score-num" style="color:#43e97b">{{ data.sleep.score }}%</div>
+                <div class="section-name">Sleep & Rest</div>
+                <span class="badge-pill" style="background:{{ data.sleep.badge.color }}">{{ data.sleep.badge.label }}</span>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg">
+            <div class="score-card">
+                <div class="icon">🏃</div>
+                <div class="score-num" style="color:#fa8231">{{ data.activity.score }}%</div>
+                <div class="section-name">Physical Activity</div>
+                <span class="badge-pill" style="background:{{ data.activity.badge.color }}">{{ data.activity.badge.label }}</span>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg">
+            <div class="score-card">
+                <div class="icon">🧠</div>
+                <div class="score-num" style="color:#f857a6">{{ data.mental.score }}%</div>
+                <div class="section-name">Mental Health</div>
+                <span class="badge-pill" style="background:{{ data.mental.badge.color }}">{{ data.mental.badge.label }}</span>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg">
+            <div class="score-card">
+                <div class="icon">💧</div>
+                <div class="score-num" style="color:#00c6fb">{{ data.hydration.score }}%</div>
+                <div class="section-name">Hydration</div>
+                <span class="badge-pill" style="background:{{ data.hydration.badge.color }}">{{ data.hydration.badge.label }}</span>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg">
+            <div class="score-card">
+                <div class="icon">📱</div>
+                <div class="score-num" style="color:#6c63ff">{{ data.screen.score }}%</div>
+                <div class="section-name">Screen Time</div>
+                <span class="badge-pill" style="background:{{ data.screen.badge.color }}">{{ data.screen.badge.label }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ CHARTS ROW 1 ═══ -->
+    <h2 class="section-title-dash">📊 Detailed Charts</h2>
+    <div class="row g-4">
+
+        <!-- Pie Chart -->
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <h4>🥧 Health Score Distribution</h4>
+                <div id="pieChart"></div>
+            </div>
+        </div>
+
+        <!-- Radar Chart -->
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <h4>🕸️ Health Radar Overview</h4>
+                <div id="radarChart"></div>
+            </div>
+        </div>
+
+        <!-- Sleep Bar -->
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <h4>😴 Sleep Analysis</h4>
+                <div id="sleepChart"></div>
+            </div>
+        </div>
+
+        <!-- Hydration Chart -->
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <h4>💧 Hydration Level</h4>
+                <div id="hydrationChart"></div>
+            </div>
+        </div>
+
+        <!-- Activity Chart -->
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <h4>🏃 Activity vs Recommended</h4>
+                <div id="activityChart"></div>
+            </div>
+        </div>
+
+        <!-- Screen Time Chart -->
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <h4>📱 Screen Time vs Healthy Limit</h4>
+                <div id="screenChart"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ═══ BMI SECTION ═══ -->
+    <h2 class="section-title-dash">⚖️ BMI Analysis</h2>
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <div class="bmi-box">
+                <p style="color:rgba(255,255,255,.6); font-size:.9rem;">Your BMI</p>
+                <div class="bmi-big" style="color:{{ data.bmi.color }}">{{ data.bmi.value }}</div>
+                <div class="bmi-category" style="color:{{ data.bmi.color }}">{{ data.bmi.category }}</div>
+                <div class="bmi-bar-wrap">
+                    <div class="bmi-bar-fill" style="width:{{ [((data.bmi.value - 10) / 30) * 100, 100] | min }}%"></div>
+                </div>
+                <div class="bmi-labels">
+                    <span>Underweight<br>&lt;18.5</span>
+                    <span>Normal<br>18.5–25</span>
+                    <span>Overweight<br>25–30</span>
+                    <span>Obese<br>&gt;30</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="chart-card">
+                <h4>⚖️ BMI Gauge</h4>
+                <div id="bmiGauge"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ SUGGESTIONS ═══ -->
+    <h2 class="section-title-dash">💡 Personalised Suggestions</h2>
+    <div class="row g-4 mb-5">
+
+        {% set sections = [
+            ("😴 Sleep & Rest",        data.sleep.tips,     "#43e97b"),
+            ("🏃 Physical Activity",   data.activity.tips,  "#fa8231"),
+            ("🧠 Mental Health",       data.mental.tips,    "#f857a6"),
+            ("💧 Hydration",           data.hydration.tips, "#00c6fb"),
+            ("📱 Screen & Lifestyle",  data.screen.tips,    "#6c63ff")
+        ] %}
+
+        {% for title, tips, color in sections %}
+            {% if tips %}
+            <div class="col-lg-6">
+                <div class="chart-card">
+                    <h4>{{ title }}</h4>
+                    {% for tip in tips %}
+                    <div class="tip-card" style="border-color:{{ color }}">
+                        {{ tip }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+
+        {% if not (data.sleep.tips or data.activity.tips or data.mental.tips or data.hydration.tips or data.screen.tips) %}
+        <div class="col-12 text-center">
+            <div class="chart-card">
+                <h2>🎉 Amazing! No suggestions needed!</h2>
+                <p style="color:rgba(255,255,255,.7)">You are maintaining excellent health across all areas. Keep it up!</p>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- Retake -->
+    <div class="text-center pb-5">
+        <a href="/questionnaire" class="retake-btn">
+            <i class="bi bi-arrow-repeat me-2"></i>Retake the Test
+        </a>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script>
+    const scores = {
+        sleep:     {{ data.sleep.score }},
+        activity:  {{ data.activity.score }},
+        mental:    {{ data.mental.score }},
+        hydration: {{ data.hydration.score }},
+        screen:    {{ data.screen.score }},
+        overall:   {{ data.overall.score }}
+    };
+
+    const colors = {
+        sleep:     '#43e97b',
+        activity:  '#fa8231',
+        mental:    '#f857a6',
+        hydration: '#00c6fb',
+        screen:    '#6c63ff'
+    };
+
+    const layout_defaults = {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor:  'rgba(0,0,0,0)',
+        font: { color: '#fff', family: 'Poppins' },
+        margin: { t: 20, b: 40, l: 40, r: 20 }
+    };
+
+    // ── 1. Bar Chart ──
+    Plotly.newPlot('barChart', [{
+        type: 'bar',
+        x: ['😴 Sleep','🏃 Activity','🧠 Mental','💧 Hydration','📱 Screen'],
+        y: [scores.sleep, scores.activity, scores.mental, scores.hydration, scores.screen],
+        marker: { color: [colors.sleep, colors.activity, colors.mental, colors.hydration, colors.screen],
+                  opacity: 0.9 },
+        text: [scores.sleep+'%', scores.activity+'%', scores.mental+'%', scores.hydration+'%', scores.screen+'%'],
+        textposition: 'outside',
+        textfont: { color: '#fff', size: 13 }
+    }], {
+        ...layout_defaults,
+        yaxis: { range:[0,110], gridcolor:'rgba(255,255,255,.1)', ticksuffix:'%' },
+        xaxis: { tickfont:{ size:12 } }
+    }, {responsive: true, displayModeBar: false});
+
+    // ── 2. Pie Chart ──
+    Plotly.newPlot('pieChart', [{
+        type: 'pie',
+        labels: ['😴 Sleep','🏃 Activity','🧠 Mental','💧 Hydration','📱 Screen'],
+        values: [scores.sleep, scores.activity, scores.mental, scores.hydration, scores.screen],
+        marker: { colors: [colors.sleep, colors.activity, colors.mental, colors.hydration, colors.screen] },
+        hole: 0.4,
+        textinfo: 'label+percent',
+        textfont: { size: 12, color: '#fff' }
+    }], { ...layout_defaults, margin:{t:20,b:20,l:20,r:20} },
+    {responsive: true, displayModeBar: false});
+
+    // ── 3. Radar Chart ──
+    Plotly.newPlot('radarChart', [{
+        type: 'scatterpolar',
+        r: [scores.sleep, scores.activity, scores.mental, scores.hydration, scores.screen, scores.sleep],
+        theta: ['Sleep','Activity','Mental','Hydration','Screen','Sleep'],
+        fill: 'toself',
+        fillcolor: 'rgba(108,99,255,0.3)',
+        line: { color: '#6c63ff', width: 2 },
+        marker: { color:'#f857a6', size:8 }
+    }], {
+        ...layout_defaults,
+        polar: {
+            bgcolor: 'rgba(255,255,255,.04)',
+            radialaxis: { visible:true, range:[0,100], gridcolor:'rgba(255,255,255,.2)', ticksuffix:'%' },
+            angularaxis: { gridcolor:'rgba(255,255,255,.2)' }
+        }
+    }, {responsive: true, displayModeBar: false});
+
+    // ── 4. Sleep Chart ──
+    const sleepHours = {{ data.sleep.score / 100 * 12 | round(1) }};
+    Plotly.newPlot('sleepChart', [
+        { type:'bar', name:'Your Sleep', x:['Your Sleep'], y:[sleepHours],
+          marker:{color:'#43e97b'}, text:[sleepHours+' hrs'], textposition:'outside', textfont:{color:'#fff'} },
+        { type:'bar', name:'Recommended', x:['Recommended'], y:[8],
+          marker:{color:'rgba(255,255,255,.2)'}, text:['8 hrs'], textposition:'outside', textfont:{color:'#fff'} }
+    ], {
+        ...layout_defaults,
+        yaxis: { range:[0,14], gridcolor:'rgba(255,255,255,.1)', ticksuffix:' hrs' },
+        barmode: 'group', showlegend: true,
+        legend: { font:{color:'#fff'} }
+    }, {responsive: true, displayModeBar: false});
+
+    // ── 5. Hydration Chart ──
+    const glasses = {{ data.hydration.score / 100 * 15 | round(0) | int }};
+    Plotly.newPlot('hydrationChart', [{
+        type: 'bar',
+        x: ['Your Intake', 'Recommended'],
+        y: [glasses, 8],
+        marker: { color: ['#00c6fb','rgba(255,255,255,.2)'] },
+        text: [glasses+' glasses', '8 glasses'],
+        textposition: 'outside',
+        textfont: { color:'#fff' }
+    }], {
+        ...layout_defaults,
+        yaxis: { range:[0,12], gridcolor:'rgba(255,255,255,.1)', ticksuffix:' glasses' }
+    }, {responsive: true, displayModeBar: false});
+
+    // ── 6. Activity Chart ──
+    const actDays = {{ data.activity.score / 100 * 7 | round(0) | int }};
+    Plotly.newPlot('activityChart', [{
+        type: 'bar',
+        x: ['Your Activity', 'Recommended'],
+        y: [actDays, 5],
+        marker: { color:['#fa8231','rgba(255,255,255,.2)'] },
+        text: [actDays+' days', '5 days'],
+        textposition: 'outside',
+        textfont: { color:'#fff' }
+    }], {
+        ...layout_defaults,
+        yaxis: { range:[0,9], gridcolor:'rgba(255,255,255,.1)', ticksuffix:' days' }
+    }, {responsive: true, displayModeBar: false});
+
+    // ── 7. Screen Time Chart ──
+    const screenHrs = {{ data.screen.score / 100 * 12 | round(1) }};
+    const actualScreen = Math.max(0, 12 - screenHrs).toFixed(1);
+    Plotly.newPlot('screenChart', [{
+        type: 'bar', orientation: 'h',
+        x: [actualScreen, 2],
+        y: ['Your Screen Time', 'Healthy Limit'],
+        marker: { color:['#6c63ff','rgba(255,255,255,.2)'] },
+        text: [actualScreen+' hrs', '2 hrs'],
+        textposition: 'outside',
+        textfont: { color:'#fff' }
+    }], {
+        ...layout_defaults,
+        xaxis: { range:[0,14], gridcolor:'rgba(255,255,255,.1)', ticksuffix:' hrs' },
+        margin: { t:20, b:40, l:130, r:40 }
+    }, {responsive: true, displayModeBar: false});
+
+    // ── 8. BMI Gauge ──
+    Plotly.newPlot('bmiGauge', [{
+        type: 'indicator', mode: 'gauge+number',
+        value: {{ data.bmi.value }},
+        gauge: {
+            axis: { range:[10,40], tickcolor:'#fff' },
+            bar: { color: '{{ data.bmi.color }}' },
+            steps: [
+                { range:[10,18.5], color:'rgba(0,198,251,.2)' },
+                { range:[18.5,25], color:'rgba(67,233,123,.2)' },
+                { range:[25,30],   color:'rgba(250,130,49,.2)' },
+                { range:[30,40],   color:'rgba(248,87,166,.2)' }
+            ],
+            threshold: { line:{ color:'#fff', width:3 }, thickness:0.75, value: {{ data.bmi.value }} }
+        },
+        number: { font:{ color:'#fff', size:40 } }
+    }], {
+        ...layout_defaults,
+        margin: { t:30, b:20, l:30, r:30 }
+    }, {responsive: true, displayModeBar: false});
+</script>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}HealthScope — Know Your Health{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        min-height: 88vh; display: flex; align-items: center;
+        position: relative; overflow: hidden; padding: 60px 0;
+    }
+    .blob {
+        position: absolute; border-radius: 50%;
+        filter: blur(80px); opacity: 0.25;
+        animation: blobMove 8s ease-in-out infinite alternate;
+    }
+    .blob-1 { width:420px; height:420px; background:var(--primary); top:-80px; left:-100px; }
+    .blob-2 { width:320px; height:320px; background:var(--secondary); bottom:-60px; right:-80px; animation-delay:2s; }
+    .blob-3 { width:250px; height:250px; background:var(--accent3); top:40%; right:25%; animation-delay:4s; }
+    @keyframes blobMove {
+        from { transform: translate(0,0) scale(1); }
+        to   { transform: translate(30px,20px) scale(1.1); }
+    }
+    .hero-badge {
+        display: inline-block;
+        background: rgba(108,99,255,.25); border: 1px solid rgba(108,99,255,.5);
+        color: #a29bfe; border-radius: 50px; padding: 6px 20px;
+        font-size: .85rem; font-weight: 600; margin-bottom: 20px;
+    }
+    .hero-title {
+        font-family: 'Nunito', sans-serif; font-weight: 900;
+        font-size: clamp(2.4rem, 5vw, 4rem); line-height: 1.15; margin-bottom: 24px;
+    }
+    .hero-title .highlight {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-desc { font-size:1.1rem; color:rgba(255,255,255,.75); max-width:520px; line-height:1.8; margin-bottom:36px; }
+    .big-emoji { font-size:10rem; filter: drop-shadow(0 20px 40px rgba(108,99,255,.5)); }
+    .orbit-badge {
+        position: absolute; background: rgba(255,255,255,.12);
+        backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.2);
+        border-radius: 14px; padding: 10px 16px; font-size:.82rem; font-weight:600;
+    }
+    .ob-1 { top:10%; left:-10%; color:#43e97b; }
+    .ob-2 { top:10%; right:-10%; color:#f857a6; }
+    .ob-3 { bottom:18%; left:-8%; color:#00c6fb; }
+    .ob-4 { bottom:18%; right:-8%; color:#fa8231; }
+    .feature-card {
+        background: rgba(255,255,255,.07); backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,.12); border-radius: 20px;
+        padding: 32px 24px; text-align: center;
+        transition: transform .3s, border-color .3s; height: 100%;
+    }
+    .feature-card:hover { transform: translateY(-6px); border-color: var(--primary); }
+    .feature-icon { font-size: 2.8rem; margin-bottom: 16px; display: block; }
+    .feature-card h5 { font-family:'Nunito',sans-serif; font-weight:800; margin-bottom:10px; }
+    .feature-card p { color:rgba(255,255,255,.65); font-size:.9rem; line-height:1.6; }
+    .stats-strip {
+        background: rgba(255,255,255,.06);
+        border-top: 1px solid rgba(255,255,255,.1);
+        border-bottom: 1px solid rgba(255,255,255,.1);
+        padding: 36px 0; margin-bottom: 80px;
+    }
+    .stat-number {
+        font-family:'Nunito',sans-serif; font-weight:900; font-size:2.2rem;
+        background: linear-gradient(135deg,var(--accent1),var(--accent3));
+        -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .stat-label { color:rgba(255,255,255,.6); font-size:.85rem; margin-top:4px; }
+    .cta-box {
+        background: linear-gradient(135deg, rgba(108,99,255,.25), rgba(248,87,166,.2));
+        border: 1px solid rgba(108,99,255,.4); border-radius: 28px;
+        padding: 60px 40px; max-width: 700px; margin: 0 auto; text-align:center;
+    }
+    .cta-box h2 { font-family:'Nunito',sans-serif; font-weight:900; font-size:2rem; margin-bottom:14px; }
+    .cta-box p { color:rgba(255,255,255,.7); margin-bottom:30px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="container position-relative">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 fade-in-up">
+                <div class="hero-badge">🧬 Biology Health Project</div>
+                <h1 class="hero-title">
+                    Analyse Your<br>
+                    <span class="highlight">Health & Wellness</span><br>
+                    in Minutes
+                </h1>
+                <p class="hero-desc">Answer 15 simple questions about your lifestyle and get a beautiful, personalised health dashboard with charts, scores, and expert suggestions.</p>
+                <a href="/questionnaire" class="btn btn-primary-custom btn-lg me-3">
+                    <i class="bi bi-clipboard-heart me-2"></i>Start Health Test
+                </a>
+            </div>
+            <div class="col-lg-6 text-center fade-in-up" style="animation-delay:.3s;">
+                <div class="floating" style="position:relative; width:280px; margin:0 auto;">
+                    <div class="big-emoji">🩺</div>
+                    <div class="orbit-badge ob-1">😴 Sleep Analysis</div>
+                    <div class="orbit-badge ob-2">🏃 Activity Score</div>
+                    <div class="orbit-badge ob-3">💧 Hydration Check</div>
+                    <div class="orbit-badge ob-4">🧠 Stress Level</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="stats-strip">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-6 col-md-3"><div class="stat-number">5</div><div class="stat-label">Health Areas</div></div>
+            <div class="col-6 col-md-3"><div class="stat-number">15</div><div class="stat-label">Questions Only</div></div>
+            <div class="col-6 col-md-3"><div class="stat-number">7+</div><div class="stat-label">Interactive Charts</div></div>
+            <div class="col-6 col-md-3"><div class="stat-number">~3</div><div class="stat-label">Minutes to Complete</div></div>
+        </div>
+    </div>
+</div>
+
+<section class="pb-5">
+    <div class="container">
+        <h2 class="text-center" style="font-family:'Nunito',sans-serif;font-weight:800;font-size:2rem;">What We Analyse</h2>
+        <p class="text-center mb-5" style="color:rgba(255,255,255,.6);">Five key pillars of your daily health</p>
+        <div class="row g-4">
+            <div class="col-sm-6 col-lg-4"><div class="feature-card"><span class="feature-icon">😴</span><h5>Sleep & Rest</h5><p>Track sleep duration and quality against healthy guidelines.</p></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="feature-card"><span class="feature-icon">🏃</span><h5>Physical Activity</h5><p>Evaluate exercise frequency, duration and intensity.</p></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="feature-card"><span class="feature-icon">🧠</span><h5>Mental Health</h5><p>Assess stress levels, mood, and relaxation habits.</p></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="feature-card"><span class="feature-icon">💧</span><h5>Hydration</h5><p>Check if you're drinking enough water every day.</p></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="feature-card"><span class="feature-icon">📱</span><h5>Screen Time</h5><p>See how screen habits and meal patterns affect health.</p></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="feature-card"><span class="feature-icon">📊</span><h5>Full Dashboard</h5><p>Colourful charts, health score, BMI and suggestions.</p></div></div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="cta-box">
+            <h2>Ready to Know Your Health Score? 🚀</h2>
+            <p>It only takes 3 minutes. Just answer and see your results!</p>
+            <a href="/questionnaire" class="btn btn-primary-custom btn-lg">
+                <i class="bi bi-heart-pulse me-2"></i>Begin My Health Analysis
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
